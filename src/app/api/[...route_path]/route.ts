@@ -1,8 +1,7 @@
 import HttpStatusCodes from 'http-status-codes'
-import { handleResponse } from "@/app/utils";
 import { NextResponse } from "next/server";
-import { API_BASE_URL } from '@/config';
-
+import { handleResponse } from "../../utils";
+import { API_BASE_URL } from '../../../config';
 
 type CtxParams = {
   params: {
