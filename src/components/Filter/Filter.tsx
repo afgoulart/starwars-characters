@@ -2,7 +2,7 @@
 import React, { MouseEventHandler, useEffect, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { useRouter } from 'next/navigation';
-import { ResourcesMapType, ResourcesType } from '../../types';
+import { ResourcesMap, ResourcesType, ResourcesKeysType } from '../../types';
 
 interface FilterProps {
   searchParams: {
@@ -10,43 +10,56 @@ interface FilterProps {
   };
 }
 
+const FILTERS = [
+  'films',
+  'people',
+  'planets',
+  'species',
+  'starships',
+  'vehicles',
+];
+
 export default function Filter({ searchParams }: FilterProps) {
   const [open, setOpen] = useState<boolean>(false);
   const [hasValue, setHasValue] = useState<boolean>(false);
   const [filterSelected, setFilterSelected] = useState<string>('');
   const router = useRouter();
 
-  const filters = Object.keys(ResourcesType).map((k) => {
-    return {
-      name: k,
-      value: ResourcesType[k],
-    };
-  });
+  const filters = FILTERS.reduce((acc, k: string) => {
+    return acc.concat({
+      name: ResourcesMap[k],
+      value: k,
+    });
+  }, [] as { name: string; value: string }[]);
+
+  const handleVisible = (state: boolean) => {
+    setOpen(state);
+  };
 
   const handleSelect = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault();
-    const value = e.currentTarget.text;
+    const value: string = e.currentTarget.text;
+    setOpen(false);
     setFilterSelected(value);
-    router.replace(`?filter=${ResourcesType[value]}`);
+    router.push(`?filter=${value.toLowerCase()}`);
   };
 
   useEffect(() => {
-    setHasValue(!!filterSelected);
-  }, [filterSelected]);
-
-  useEffect(() => {
-    setOpen(false);
     const f = searchParams?.filter;
-    setFilterSelected(ResourcesMapType[f]);
-  }, [searchParams]);
+    setFilterSelected(ResourcesMap[f]);
+    setHasValue(!!filterSelected);
+  }, [filterSelected, searchParams]);
+
   return (
-    <div className="max-w-md mx-auto">
+    <div className="w-full p-5 pb-0 flex flex-row content-center items-center md:items-center gap-3 ">
+      <label className="hidden md:flex ">Filter By:</label>
       <div className="relative">
-        <div className="h-10 bg-white flex border border-gray-200 rounded items-center">
+        <div className="h-10 bg-white flex border-b flex-row border-gray-200 rounded items-center">
           <input
             defaultValue={filterSelected}
             name="select"
             id="select"
+            onFocus={() => handleVisible(true)}
             className="px-4 appearance-none outline-none text-gray-800 w-full"
           />
 
@@ -56,6 +69,7 @@ export default function Filter({ searchParams }: FilterProps) {
               'cursor-pointer',
               'focus:outline-none',
               'transition-all',
+              'md:hidden',
               'text-gray-300',
               'hover:text-gray-600',
               {
@@ -64,10 +78,8 @@ export default function Filter({ searchParams }: FilterProps) {
             )}
             onClick={() => {
               setFilterSelected('');
-              const newUrl = new URL(location.href);
-              newUrl.searchParams.delete('filter');
               setOpen(false);
-              router.replace(newUrl.pathname);
+              router.push(location.pathname);
             }}
           >
             <svg
@@ -84,20 +96,21 @@ export default function Filter({ searchParams }: FilterProps) {
             </svg>
           </button>
           <label
-            htmlFor="show_more"
             className={classnames(
               'cursor-pointer',
               'outline-none',
               'focus:outline-none',
-              'border-l',
               'border-gray-200',
               'transition-all',
               'text-gray-300',
               'hover:text-gray-600',
               {
-                'rotate-180': open,
+                'rotate-180': !open,
+                'border-l': open,
+                'border-r': !open,
               }
             )}
+            onClick={() => handleVisible(!open)}
           >
             <svg
               className={classnames('w-4 h-4 mx-2 fill-current')}
@@ -118,11 +131,11 @@ export default function Filter({ searchParams }: FilterProps) {
           name="show_more"
           id="show_more"
           className="hidden peer"
-          defaultChecked={open}
+          checked={open}
           onChange={() => setOpen(true)}
         />
         <div className="absolute rounded shadow bg-white overflow-hidden hidden peer-checked:flex flex-col w-full mt-1 border border-gray-200">
-          {filters.map((item, idx) => {
+          {filters.map((item: any, idx: number) => {
             return (
               <div key={idx} className="cursor-pointer group">
                 <a
@@ -136,6 +149,18 @@ export default function Filter({ searchParams }: FilterProps) {
             );
           })}
         </div>
+      </div>
+      <div className="h-10 flex-1 flex justify-end ">
+        <button
+          className="bg-white border p-2 uppercase px-14  border-gray-400 text-gray-400  font-normal hidden md:flex"
+          onClick={() => {
+            setFilterSelected('');
+            setOpen(false);
+            router.push(location.pathname);
+          }}
+        >
+          clear all
+        </button>
       </div>
     </div>
   );

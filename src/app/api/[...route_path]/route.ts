@@ -2,6 +2,7 @@ import HttpStatusCodes from 'http-status-codes'
 import { NextResponse } from "next/server";
 import { handleResponse } from "../../utils";
 import { API_BASE_URL } from '../../../config';
+import { ResultAPIType } from '../../../types';
 
 type CtxParams = {
   params: {
@@ -16,13 +17,8 @@ export async function GET(req: Request, ctx: CtxParams) {
     const resp = await fetch(`${API_BASE_URL}/${route_path.join('/')}`, {
       method: "GET"
     })
-    const respData: any = handleResponse(await resp.json(), API_BASE_URL.replace('/', '\\/'), '/api');
-
-    if (respData.errors) {
-      return new Response(resp.statusText, {
-        status: HttpStatusCodes.BAD_REQUEST
-      })
-    }
+    const respData: ResultAPIType = handleResponse(await resp.json(), API_BASE_URL.replace('/', '\\/'), '');
+    console.log(JSON.stringify({ count: respData.count, next: respData.next, previous: respData.previous }));
 
     return new Response(JSON.stringify(respData), {
       status: HttpStatusCodes.OK,
