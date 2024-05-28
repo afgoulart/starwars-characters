@@ -30,25 +30,25 @@ export interface ResultAPIType {
   count: number,
   next: string | null,
   previous: string | null,
-  results: ResultsAPItype
+  results: ResultsAPIType[]
 }
 
-export type ResultsAPItype = IPlanet[] | IFilm[] |
-  IPeople[] |
-  ISpecie[] |
-  IStarship[] |
-  IVehicle[]
+export type ResultsAPIType = IPlanet | IFilm |
+  IPeople |
+  ISpecie |
+  IStarship |
+  IVehicle
 
 export interface IFilm {
   characters: string[] | IPeople[];
-  created: Date;
+  created: string;
   director: string;
-  edited: Date;
+  edited: string;
   episode_id: string;
   opening_crawl: string;
   planets: string[] | IPlanet[];
   producer: string;
-  release_date: Date;
+  release_date: string;
   species: string[] | ISpecie[];
   starships: string[] | IStarship[];
   title: string;
@@ -58,26 +58,26 @@ export interface IFilm {
 export interface IPeople {
   birth_year: string;
   eye_color: string;
-  films: string[] | IFilm[];
+  films: string[];
   gender: string;
   hair_color: string;
   height: string;
-  homeworld: string | IPlanet;
+  homeworld: string;
   mass: string;
   name: string;
   skin_color: string;
-  created: Date;
-  edited: Date;
-  species: string[] | ISpecie[];
-  starships: string[] | IStarship[];
+  created: string;
+  edited: string;
+  species: string[];
+  starships: string[];
   url: string;
-  vehicles: string[] | IVehicle[];
+  vehicles: string[];
 }
 export interface IPlanet {
   climate: string;
-  created: Date;
+  created: string;
   diameter: string;
-  edited: Date;
+  edited: string;
   films: string[] | IFilm[];
   gravity: string;
   name: string;
@@ -93,9 +93,9 @@ export interface ISpecie {
   average_height: string;
   average_lifespan: string;
   classification: string;
-  created: Date;
+  created: string;
   designation: string;
-  edited: Date;
+  edited: string;
   eye_colors: string;
   hair_colors: string;
   homeworld: string | IPlanet;
@@ -111,9 +111,9 @@ export interface IStarship {
   cargo_capacity: string;
   consumables: string;
   cost_in_credits: string;
-  created: Date;
+  created: string;
   crew: string;
-  edited: Date;
+  edited: string;
   hyperdrive_rating: string;
   length: string;
   manufacturer: string;
@@ -130,9 +130,9 @@ export interface IVehicle {
   cargo_capacity: string;
   consumables: string;
   cost_in_credits: string;
-  created: Date;
+  created: string;
   crew: string;
-  edited: Date;
+  edited: string;
   length: string;
   manufacturer: string;
   max_atmosphering_speed: string;

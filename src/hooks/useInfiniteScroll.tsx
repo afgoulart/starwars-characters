@@ -1,11 +1,11 @@
 'use client';
 import { ReactNode, createContext, useContext } from 'react';
-import { IResourcesMapType, ResourcesKeysType, ResultsAPItype } from '../types';
+import { IResourcesMapType, ResourcesKeysType, ResultAPIType } from '../types';
 
 const ISContext = createContext({});
 
 interface ISProviderProps {
-  data: ResultsAPItype;
+  data: ResultAPIType;
   resource: ResourcesKeysType;
   children: ReactNode;
 }
@@ -29,14 +29,15 @@ export const getDataByType = (resource: ResourcesKeysType, data: any) => {
 };
 
 export const ISProvider = ({ data, resource, children }: ISProviderProps) => {
-  console.log('provider', data);
-  const props = getDataByType(resource, data);
+  const props = getDataByType(resource, data.results);
+
   return (
     <ISContext.Provider
-      value={{ resource: resource || 'planets', contentList: props }}
+      value={{ resource: resource || 'planets', ...data, results: props }}
     >
       {children}
     </ISContext.Provider>
   );
 };
+
 export const useInfiniteScroll = () => useContext(ISContext);

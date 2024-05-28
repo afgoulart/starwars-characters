@@ -1,61 +1,49 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
-import { ResourcesKeysType, ResultAPIType, ResultsAPItype } from '../../types';
-import { getDataByType, useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import PlanetCard from '../base/Card/PlanetCard';
-import FilmCard from '../base/Card/FilmCard';
-import VehicleCard from '../base/Card/VehicleCard';
+import React, { useEffect, useState } from 'react';
+import { ResultAPIType, ResultsAPIType } from '@/types';
+import { InfiniteScrollItem } from './InfinitScrollItem';
+import classNames from 'classnames';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 interface InfiniteScrollProps {
   totalPage: number;
   limit: number;
   initialPage?: number;
-  initialItems?: ResultsAPItype;
-  resource: ResourcesKeysType;
-  nextPage: string | null;
-  prevPage: string | null;
+  initialItems?: ResultsAPIType[];
 }
 
-export function InfiniteScroll({
-  initialPage,
-  initialItems,
-  nextPage,
-  resource,
-}: InfiniteScrollProps) {
-  const [items, setItems] = useState<ResultsAPItype>(initialItems || []);
+export function InfiniteScroll({ initialPage }: InfiniteScrollProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  // const [page, setPage] = useState(initialPage || 1);
+  const [page, setPage] = useState(initialPage || 1);
+  const { resource, results, next } = useInfiniteScroll() as any;
+  const [items, setItems] = useState<ResultsAPIType[]>(results || []);
 
-  const fetchData = useCallback(
-    async (ac?: AbortController) => {
+  const handleEffectFetchData = () => {
+    let isCanceled = false;
+    const ac = new AbortController();
+
+    const fetchData = async (ac?: AbortController) => {
       setIsLoading(true);
       setError(null);
 
       try {
-        if (!nextPage) return false; // TODO: Return section error;
-
-        const response = await fetch(nextPage, {
-          cache: 'no-store',
-          signal: ac?.signal,
-        });
+        const response = await fetch(
+          `/api/${resource || 'people'}?page=${page}`,
+          {
+            signal: ac?.signal,
+          }
+        );
         const data: ResultAPIType = await response.json();
-        const results: ResultsAPItype = data.results as ResultsAPItype;
+        const results: ResultsAPIType[] = data.results as ResultsAPIType[];
         setItems((prevItems) => [...prevItems, ...results] as any);
-      } catch (error) {
-        // setError(error);
+      } catch (error: any) {
+        setError(error);
       } finally {
         setIsLoading(false);
       }
-    },
-    [nextPage]
-  );
-
-  useEffect(() => {
-    let isCanceled = false;
-    const ac = new AbortController();
-
-    setItems(initialItems || []);
+    };
 
     (async () => {
       if (isCanceled) return;
@@ -67,16 +55,41 @@ export function InfiniteScroll({
       isCanceled = true;
       ac.abort();
     };
-  }, [initialItems, resource]);
+  };
+
+  useEffect(handleEffectFetchData, [page, resource]);
 
   return (
-    <div className="flex items-stretch flex-col">
-      <h1>All Characters</h1>
-      <InfiniteScrollItem />
-      {nextPage && (
+    <div className="flex items-stretch flex-col pb-5">
+      <h1 className="w-full px-5 pt-5 text-2xl">All Characters</h1>
+
+      {!resource && <div> loading...</div>}
+
+      {resource && (
+        <div className="grid grid-flow-row gap-8 text-neutral-600 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-5">
+          {items.map((item: ResultsAPIType, idx: number) => (
+            <InfiniteScrollItem item={item} resource={resource} key={idx} />
+          ))}
+          {isLoading && (
+            <div className="">
+              <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {next && (
         <button
-          className="bg-white border p-4 uppercase px-14 m-auto border-black text-black  font-normal"
-          onClick={() => fetchData()}
+          className={classNames(
+            'cursor-pointer bg-white border p-4 uppercase',
+            'px-14 m-auto border-black text-black  font-normal',
+            { 'cursor-progress': isLoading, disabled: isLoading }
+          )}
+          onClick={(e) => {
+            e.preventDefault;
+
+            setPage(page + 1);
+          }}
         >
           Load More
         </button>
@@ -85,27 +98,6 @@ export function InfiniteScroll({
   );
 }
 
-export function InfiniteScrollItem() {
-  const { resource, contentList } = useInfiniteScroll() as any;
-
-  if (!resource) return <div> loading...</div>;
-
-  return (
-    <div>
-      {contentList.map((item: ResultsAPItype, idx: number) => {
-        return (
-          <div key={idx}>
-            {resource === 'planets' && <PlanetCard contentData={item as any} />}
-            {resource === 'films' && <FilmCard contentData={item as any} />}
-            {resource === 'vehicles' && (
-              <VehicleCard contentData={item as any} />
-            )}
-            {resource === 'starship' && <h1>starship</h1>}
-            {resource === 'people' && <h1>people</h1>}
-            {resource === 'species' && <h1>species</h1>}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+export const urlToFilters = (resource: string, url: string) => {
+  return url.replace('/?', '?').replace(/\/(.+?)\?(.*)$/g, '/?filter=$1&$2');
+};

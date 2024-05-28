@@ -1,3 +1,1 @@
-export const Card = (props: any) => {
-  return <div>{JSON.stringify(props)}</div>;
-};
+export { Card } from './Card';

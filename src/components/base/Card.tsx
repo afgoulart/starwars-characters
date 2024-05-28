@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Picture } from '../Picture';
+import { Picture } from './Picture';
 
 export function Card({
   onClick,
